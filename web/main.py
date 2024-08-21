@@ -16,6 +16,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 origins = [
     "http://localhost",
     "http://localhost:3000",
+    "https://potato-disease-classification-keu1.onrender.com"  # Add this line
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -59,4 +60,4 @@ async def serve_html():
         return HTMLResponse(f.read())
 
 if __name__ == "__main__":
-    uvicorn.run(app, host='localhost', port=8000)
+    uvicorn.run(app, host='0.0.0.0', port=8000)
