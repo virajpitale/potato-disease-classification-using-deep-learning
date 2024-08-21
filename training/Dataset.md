@@ -1,0 +1,1 @@
+I used the dataset sourced from [Kaggle](https://www.kaggle.com/datasets/arjuntejaswi/plant-village). This dataset includes images of various plant species and their diseases, providing valuable data for plant disease classification tasks.
