@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Potato Leaf Disease Classifier</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url('/static/potato-bg.jpg'); /* Path to your local background image */
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+            position: relative; /* Required for fixed footer positioning */
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #4caf50;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        p {
+            color: #555;
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            margin: 20px 0;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #4caf50;
+            background-color: #f9f9f9;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="file"]:focus {
+            border-color: #81c784;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: white;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button:hover {
+            background-color: #388e3c;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 24px; /* Larger font size for prediction */
+            color: #333;
+        }
+
+        .result p {
+            margin: 5px 0;
+        }
+
+        .result .prediction {
+            font-size: 32px; /* Larger and bolder font size for prediction */
+            font-weight: bold;
+        }
+
+        .result .confidence {
+            font-size: 22px; /* Slightly smaller font size for confidence */
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #4caf50;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        .info {
+            margin-top: 20px;
+            text-align: left;
+            color: #444;
+        }
+
+        .info h2 {
+            color: #4caf50;
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .info p {
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .footer {
+            position: fixed; /* Fix the footer to the bottom */
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            font-size: 12px;
+            color: #777;
+            text-align: center;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-top: 1px solid #ddd;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Potato Leaf Disease Classifier</h1>
+        <p>Upload an image of a potato leaf to determine if it is healthy or affected.</p>
+        <input type="file" id="fileInput" accept="image/*">
+        <button onclick="uploadImage()">Upload and Predict</button>
+        <div class="spinner" id="spinner"></div>
+        <div class="result" id="result"></div>
+
+        <!-- Information Section -->
+        <div class="info">
+            <h2>Disease Classification</h2>
+            <p><strong>Healthy:</strong> The potato leaf is in good condition, showing no signs of disease. Proper growth and development without any visible abnormalities.</p>
+            <p><strong>Early Blight:</strong> Characterized by brown spots with yellow halos on the leaves. This disease can cause premature leaf drop and reduce crop yield if not managed.</p>
+            <p><strong>Late Blight:</strong> Known for dark, water-soaked lesions on the leaves, which may turn into a grayish mold. This serious disease can cause significant damage to the potato crop if not controlled.</p>
+        </div>
+    </div>
+    <div class="footer">
+        Powered by AI &middot; Ensuring Healthy Crops<br>
+    </div>
+
+    <script>
+        async function uploadImage() {
+            const fileInput = document.getElementById('fileInput');
+            const resultDiv = document.getElementById('result');
+            const spinner = document.getElementById('spinner');
+
+            if (fileInput.files.length === 0) {
+                resultDiv.innerHTML = 'Please select an image file.';
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            resultDiv.innerHTML = '';
+            spinner.style.display = 'block';
+
+            const response = await fetch('http://localhost:8000/predict', {
+                method: 'POST',
+                body: formData,
+            });
+
+            spinner.style.display = 'none';
+
+            if (response.ok) {
+                const data = await response.json();
+                let color;
+                if (data.class === "Healthy") color = "#4caf50";
+                else if (data.class === "Early Blight") color = "#ff9800";
+                else color = "#f44336";
+
+                resultDiv.innerHTML = `
+                    <p class="prediction">Prediction: <span style="color:${color};">${data.class}</span></p>
+                    <p class="confidence">Confidence: <span style="color:${color};">${(data.confidence * 100).toFixed(2)}%</span></p>
+                `;
+            } else {
+                resultDiv.innerHTML = 'Failed to predict. Please try again.';
+            }
+        }
+    </script>
+</body>
+</html>
